@@ -178,13 +178,24 @@ class WatcherPlugin
             return;
         }
 
+        $this->watch($input, $output);
+    }
+
+    /**
+     * Watch file events and rerun peridot when changes are received
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     */
+    protected function watch(InputInterface $input, OutputInterface $output)
+    {
         $fileEvents = $this->getEventMap();
         $events = $this->getEvents();
         $watcher = new ResourceWatcher();
         foreach ($events as $event) {
             $watcher->track('peridot.tests', $this->configuration->getPath(), $fileEvents[$event]);
         }
-        $watcher->addListener('peridot.tests', function() use ($input, $output) {
+        $watcher->addListener('peridot.tests', function () use ($input, $output) {
             $this->environment->getEventEmitter()->removeAllListeners();
             Context::getInstance()->getCurrentSuite()->setTests([]);
             $this->listen();
