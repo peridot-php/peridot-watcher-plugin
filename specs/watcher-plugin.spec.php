@@ -33,6 +33,11 @@ describe('WatcherPlugin', function() {
             assert($this->definition->hasOption('watch'), "input definition should have watch option");
         });
 
+        it('should store the peridot environment', function() {
+            $env = $this->watcher->getEnvironment();
+            assert($env === $this->environment, "watcher should have set environment");
+        });
+
         it('should store the peridot application', function() {
             $app = $this->watcher->getApplication();
             assert($app === $this->application, "watcher should have set application");

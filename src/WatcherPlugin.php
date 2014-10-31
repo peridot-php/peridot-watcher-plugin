@@ -2,10 +2,14 @@
 namespace Peridot\Plugin\Watcher;
 
 use Evenement\EventEmitterInterface;
+use Lurker\Event\FilesystemEvent;
+use Lurker\ResourceWatcher;
 use Peridot\Configuration;
 use Peridot\Console\Application;
 use Peridot\Console\Environment;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class WatcherPlugin
 {
@@ -43,6 +47,11 @@ class WatcherPlugin
     protected $application;
 
     /**
+     * @var Environment
+     */
+    protected $environment;
+
+    /**
      * @param EventEmitterInterface $emitter
      */
     public function __construct(EventEmitterInterface $emitter)
@@ -77,6 +86,7 @@ class WatcherPlugin
     {
         $definition = $environment->getDefinition();
         $definition->option("--watch", null, InputOption::VALUE_NONE, "Watch files for changes and rerun tests");
+        $this->environment = $environment;
         $this->application = $application;
     }
 
@@ -141,11 +151,42 @@ class WatcherPlugin
     }
 
     /**
+     * @return Environment
+     */
+    public function getEnvironment()
+    {
+        return $this->environment;
+    }
+
+    /**
      * @return Application
      */
     public function getApplication()
     {
         return $this->application;
+    }
+
+    /**
+     * @param $exitCode
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     */
+    public function onPeridotEnd($exitCode, InputInterface $input, OutputInterface $output)
+    {
+        if (! $input->getOption('watch')) {
+            return;
+        }
+
+        $fileEvents = $this->getEventMap();
+        $events = $this->getEvents();
+        $watcher = new ResourceWatcher();
+        foreach ($events as $event) {
+            $watcher->track('peridot.tests', $this->configuration->getPath(), $fileEvents[$event]);
+        }
+        $watcher->addListener('peridot.tests', function() use ($input, $output) {
+            $this->application->run($input, $output);
+        });
+        $watcher->start();
     }
 
     /**
@@ -156,5 +197,21 @@ class WatcherPlugin
         $this->emitter->on('peridot.configure', [$this, 'setConfiguration']);
         $this->emitter->on('peridot.start', [$this, 'onPeridotStart']);
         $this->emitter->on('runner.start', [$this, 'refreshPath']);
+        $this->emitter->on('peridot.end', [$this, 'onPeridotEnd']);
+    }
+
+    /**
+     * Maps watcher events to FilesystemEvents
+     *
+     * @return array
+     */
+    private function getEventMap()
+    {
+        return [
+            self::CREATE_EVENT => FilesystemEvent::CREATE,
+            self::MODIFY_EVENT => FilesystemEvent::MODIFY,
+            self::DELETE_EVENT => FilesystemEvent::DELETE,
+            self::ALL_EVENT => FilesystemEvent::ALL
+        ];
     }
 } 
