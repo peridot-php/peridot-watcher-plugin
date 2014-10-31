@@ -7,6 +7,7 @@ use Lurker\ResourceWatcher;
 use Peridot\Configuration;
 use Peridot\Console\Application;
 use Peridot\Console\Environment;
+use Peridot\Runner\Context;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -184,6 +185,9 @@ class WatcherPlugin
             $watcher->track('peridot.tests', $this->configuration->getPath(), $fileEvents[$event]);
         }
         $watcher->addListener('peridot.tests', function() use ($input, $output) {
+            $this->environment->getEventEmitter()->removeAllListeners();
+            Context::getInstance()->getCurrentSuite()->setTests([]);
+            $this->listen();
             $this->application->run($input, $output);
         });
         $watcher->start();
