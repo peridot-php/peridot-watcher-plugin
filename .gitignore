@@ -1,0 +1,5 @@
+*.swp
+composer.lock
+.idea/
+vendor/
+peridot.php

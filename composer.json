@@ -1,0 +1,20 @@
+{
+    "name": "peridot-php/peridot-watcher-plugin",
+    "description": "Watch tests for changes then run them again",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Brian Scaturro",
+            "email": "scaturrob@gmail.com"
+        }
+    ],
+    "require": {
+        "peridot-php/peridot": "~1.0",
+        "henrikbjorn/lurker": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Peridot\\Plugin\\Watcher\\": "src/"
+        }
+    }
+}
