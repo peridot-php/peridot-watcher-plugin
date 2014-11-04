@@ -10,6 +10,7 @@ use Peridot\Plugin\Watcher\WatcherPlugin;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 describe('WatcherPlugin', function() {
@@ -164,6 +165,13 @@ describe('WatcherPlugin', function() {
             $this->watcher->onPeridotEnd(0, $input, $output);
             assert($this->watcherInterface->input === $input, "should have set input");
             assert($this->watcherInterface->output === $output, "should have set output");
+        });
+
+        it('should remove the peridot.end listener', function() {
+            $this->watcher->onPeridotStart($this->environment, $this->application);
+            $this->watcher->onPeridotEnd(0, new ArrayInput(['--watch' => 1], $this->environment->getDefinition()), new NullOutput());
+            $listeners = $this->emitter->listeners('peridot.end');
+            assert(empty($listeners), "should have removed peridot.end");
         });
     });
 

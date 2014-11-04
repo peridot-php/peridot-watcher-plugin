@@ -194,6 +194,8 @@ class WatcherPlugin
      */
     public function onPeridotEnd($exitCode, InputInterface $input, OutputInterface $output)
     {
+        $this->emitter->removeListener('peridot.end', [$this, 'onPeridotEnd']);
+
         if (! $input->getOption('watch')) {
             return;
         }

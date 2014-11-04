@@ -11,10 +11,10 @@ describe('A sandwich', function() {
         assert(array_key_exists('great', $this->sandwich), "should be great");
     });
 
-    context('when rad', function() {
-        it('should be rad', function() {
-            assert(true, "should be rad");
-        });
-    });
+//    context('when rad', function() {
+//        it('should be rad', function() {
+//            assert(true, "should be rad");
+//        });
+//    });
 
 });
