@@ -1,9 +1,7 @@
 <?php
 describe('A sandwich', function() {
 
-    beforeEach(function() {
-        $this->sandwich = ['delicious' => true, 'great' => true];
-    });
+    $this->sandwich = ['delicious' => true, 'great' => true];
 
     it('should be delicious', function() {
         assert($this->sandwich['delicious'], "should be delicious");

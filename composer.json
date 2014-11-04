@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "peridot-php/peridot": "1.4",
+        "peridot-php/peridot": "~1.6",
         "henrikbjorn/lurker": "~1.0"
     },
     "autoload": {

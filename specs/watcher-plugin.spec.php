@@ -4,7 +4,13 @@ use Peridot\Configuration;
 use Peridot\Console\Application;
 use Peridot\Console\Environment;
 use Peridot\Console\InputDefinition;
+use Peridot\Plugin\Watcher\LurkerWatcher;
+use Peridot\Plugin\Watcher\WatcherInterface;
 use Peridot\Plugin\Watcher\WatcherPlugin;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 describe('WatcherPlugin', function() {
     beforeEach(function() {
@@ -20,11 +26,16 @@ describe('WatcherPlugin', function() {
         });
     });
 
-    context('when peridot.start event fires', function() {
+    $setupEnvironment = function() {
+        $this->definition = new InputDefinition();
+        $this->environment = new Environment($this->definition, $this->emitter, []);
+    };
+
+    context('when peridot.start event fires', function() use ($setupEnvironment) {
+
+        beforeEach($setupEnvironment);
 
         beforeEach(function() {
-            $this->definition = new InputDefinition();
-            $this->environment = new Environment($this->definition, $this->emitter, []);
             $this->application = new Application($this->environment);
             $this->emitter->emit('peridot.start', [$this->environment, $this->application]);
         });
@@ -58,9 +69,30 @@ describe('WatcherPlugin', function() {
 
     describe("->getEvents()", function() {
         it('should return create and modify events by default', function() {
-            $expected = [WatcherPlugin::CREATE_EVENT, WatcherPlugin::MODIFY_EVENT];
+            $expected = [WatcherInterface::MODIFY_EVENT];
             $events = $this->watcher->getEvents();
             assert($expected == $events, "expected create and modify events by default");
+        });
+    });
+
+    $setupApplication = function() {
+        $this->application = new StubApplication($this->environment);
+        $this->input = new ArrayInput([]);
+        $this->output = new BufferedOutput();
+    };
+
+    describe('->runPeridot()', function() use ($setupEnvironment, $setupApplication) {
+
+        beforeEach($setupEnvironment);
+
+        beforeEach($setupApplication);
+
+        it('should clear the event emitter', function() {
+            $this->emitter->on('ham', function() {  });
+            $this->watcher->onPeridotStart($this->environment, $this->application);
+            $this->watcher->runPeridot($this->input, $this->output);
+            $listeners = $this->emitter->listeners('ham');
+            assert(empty($listeners), "listeners should be cleared");
         });
     });
 
@@ -73,9 +105,9 @@ describe('WatcherPlugin', function() {
         });
 
         it('should set events to only supported events', function() {
-            $this->watcher->setEvents([WatcherPlugin::CREATE_EVENT, 99, 43, "string"]);
+            $this->watcher->setEvents([WatcherInterface::CREATE_EVENT, 99, 43, "string"]);
             $actual = $this->watcher->getEvents();
-            assert([WatcherPlugin::CREATE_EVENT] == $actual, "should only set valid events");
+            assert([WatcherInterface::CREATE_EVENT] == $actual, "should only set valid events");
         });
 
         context('when all values are filtered out', function() {
@@ -87,4 +119,58 @@ describe('WatcherPlugin', function() {
             });
         });
     });
+
+    describe('->watch()', function() use ($setupEnvironment, $setupApplication) {
+        beforeEach($setupEnvironment);
+
+        beforeEach($setupApplication);
+
+        it('should execute the watcher with plugin events', function() {
+            $this->emitter->emit('peridot.configure', [new Configuration()]);
+            $watcherInterface = new StubWatcher();
+            $this->watcher->watch($watcherInterface);
+            assert($watcherInterface->watched, "watcher interface should have begun watch");
+        });
+    });
+
+    describe('->getWatcher()', function() {
+        it('should return LurkerWatcher by default', function() {
+            $watcher = $this->watcher->getWatcher();
+            assert($watcher instanceof LurkerWatcher, "LurkerWatcher should be default WatcherInterface");
+        });
+    });
 });
+
+class StubApplication extends Application
+{
+    public function run(InputInterface $input = null, OutputInterface $output = null)
+    {
+        $output->write("ran");
+        return $output;
+    }
+
+}
+
+class StubWatcher implements WatcherInterface
+{
+    protected $input;
+
+    protected $output;
+
+    public $watched = false;
+
+    public function setInput(InputInterface $input)
+    {
+        $this->input = $input;
+    }
+
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
+    }
+
+    public function watch($path, array $events, callable $listener)
+    {
+        $this->watched = true;
+    }
+}

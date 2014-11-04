@@ -2,8 +2,6 @@
 namespace Peridot\Plugin\Watcher;
 
 use Evenement\EventEmitterInterface;
-use Lurker\Event\FilesystemEvent;
-use Lurker\ResourceWatcher;
 use Peridot\Configuration;
 use Peridot\Console\Application;
 use Peridot\Console\Environment;
@@ -14,14 +12,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class WatcherPlugin
 {
-    const CREATE_EVENT = 0;
-
-    const MODIFY_EVENT = 1;
-
-    const DELETE_EVENT = 2;
-
-    const ALL_EVENT = 3;
-
     /**
      * @var EventEmitterInterface
      */
@@ -51,6 +41,11 @@ class WatcherPlugin
      * @var Environment
      */
     protected $environment;
+
+    /**
+     * @var WatcherInterface
+     */
+    protected $watcher;
 
     /**
      * @param EventEmitterInterface $emitter
@@ -114,7 +109,7 @@ class WatcherPlugin
      */
     public function getDefaultEvents()
     {
-        return [WatcherPlugin::CREATE_EVENT, WatcherPlugin::MODIFY_EVENT];
+        return [WatcherInterface::MODIFY_EVENT];
     }
 
     /**
@@ -147,7 +142,7 @@ class WatcherPlugin
      */
     public function supportsEvent($eventId)
     {
-        $supportedEvents = [self::CREATE_EVENT, self::MODIFY_EVENT, self::DELETE_EVENT, self::ALL_EVENT];
+        $supportedEvents = [WatcherInterface::CREATE_EVENT, WatcherInterface::MODIFY_EVENT, WatcherInterface::DELETE_EVENT, WatcherInterface::ALL_EVENT];
         return array_search($eventId, $supportedEvents, true) !== false;
     }
 
@@ -157,6 +152,26 @@ class WatcherPlugin
     public function getEnvironment()
     {
         return $this->environment;
+    }
+
+    /**
+     * @return WatcherInterface
+     */
+    public function getWatcher()
+    {
+        if (is_null($this->watcher)) {
+            $this->watcher = new LurkerWatcher();
+        }
+        return $this->watcher;
+    }
+
+    /**
+     * @param WatcherInterface $watcher
+     */
+    public function setWatcher(WatcherInterface $watcher)
+    {
+        $this->watcher = $watcher;
+        return $this;
     }
 
     /**
@@ -178,7 +193,22 @@ class WatcherPlugin
             return;
         }
 
-        $this->watch($input, $output);
+        $this->watch($this->getWatcher());
+    }
+
+    /**
+     * Runs the Peridot application after clearing the event emitter
+     * and resetting the root suite.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     */
+    public function runPeridot(InputInterface $input, OutputInterface $output)
+    {
+        $this->environment->getEventEmitter()->removeAllListeners();
+        Context::getInstance()->getCurrentSuite()->setTests([]);
+        $this->listen();
+        $this->application->run($input, $output);
     }
 
     /**
@@ -187,21 +217,10 @@ class WatcherPlugin
      * @param InputInterface $input
      * @param OutputInterface $output
      */
-    protected function watch(InputInterface $input, OutputInterface $output)
+    public function watch(WatcherInterface $watcher)
     {
-        $fileEvents = $this->getEventMap();
         $events = $this->getEvents();
-        $watcher = new ResourceWatcher();
-        foreach ($events as $event) {
-            $watcher->track('peridot.tests', $this->configuration->getPath(), $fileEvents[$event]);
-        }
-        $watcher->addListener('peridot.tests', function () use ($input, $output) {
-            $this->environment->getEventEmitter()->removeAllListeners();
-            Context::getInstance()->getCurrentSuite()->setTests([]);
-            $this->listen();
-            $this->application->run($input, $output);
-        });
-        $watcher->start();
+        $watcher->watch($this->configuration->getPath(), $events, [$this, 'runPeridot']);
     }
 
     /**
@@ -213,20 +232,5 @@ class WatcherPlugin
         $this->emitter->on('peridot.start', [$this, 'onPeridotStart']);
         $this->emitter->on('runner.start', [$this, 'refreshPath']);
         $this->emitter->on('peridot.end', [$this, 'onPeridotEnd']);
-    }
-
-    /**
-     * Maps watcher events to FilesystemEvents
-     *
-     * @return array
-     */
-    private function getEventMap()
-    {
-        return [
-            self::CREATE_EVENT => FilesystemEvent::CREATE,
-            self::MODIFY_EVENT => FilesystemEvent::MODIFY,
-            self::DELETE_EVENT => FilesystemEvent::DELETE,
-            self::ALL_EVENT => FilesystemEvent::ALL
-        ];
     }
 } 
