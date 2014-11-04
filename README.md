@@ -1,6 +1,8 @@
 Peridot Watcher Plugin
 ======================
 
+##WIP - This is pretty broken right now - come back later.
+
 [![Build Status](https://travis-ci.org/peridot-php/peridot-watcher-plugin.png)](https://travis-ci.org/peridot-php/peridot-watcher-plugin) [![HHVM Status](http://hhvm.h4cc.de/badge/peridot-php/peridot-watcher-plugin.svg)](http://hhvm.h4cc.de/package/peridot-php/peridot-watcher-plugin)
 
 Watch for changes in your Peridot tests and re run them when a change occurs.
