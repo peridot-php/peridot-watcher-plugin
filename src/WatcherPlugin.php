@@ -229,7 +229,7 @@ class WatcherPlugin
     public function watch(WatcherInterface $watcher)
     {
         $events = $this->getEvents();
-        $watcher->watch($this->configuration->getPath(), $events, [$this, 'runPeridot']);
+        $watcher->watch($this->getTrackedPaths(), $events, [$this, 'runPeridot']);
     }
 
     /**
