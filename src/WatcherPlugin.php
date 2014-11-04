@@ -48,6 +48,11 @@ class WatcherPlugin
     protected $watcher;
 
     /**
+     * @var array
+     */
+    protected $trackedPaths = [];
+
+    /**
      * @param EventEmitterInterface $emitter
      */
     public function __construct(EventEmitterInterface $emitter)
@@ -225,6 +230,28 @@ class WatcherPlugin
     {
         $events = $this->getEvents();
         $watcher->watch($this->configuration->getPath(), $events, [$this, 'runPeridot']);
+    }
+
+    /**
+     * Track an additional path
+     *
+     * @param $path
+     * @return $this
+     */
+    public function track($path)
+    {
+        $this->trackedPaths[] = $path;
+        return $this;
+    }
+
+    /**
+     * Return all tracked paths
+     *
+     * @return array
+     */
+    public function getTrackedPaths()
+    {
+        return array_merge([$this->getPath()], $this->trackedPaths);
     }
 
     /**

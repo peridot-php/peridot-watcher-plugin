@@ -31,7 +31,7 @@ Registering the plugin will make a `--watch` option available to the Peridot app
 vendor/bin/peridot specs/ --watch
 ```
 
-##File Events
+##File events
 By default, the watcher plugin will look for a "file changed" event, but you can configure the plugin to listen for the following events:
 
 * WatcherInterface::CREATE_EVENT
@@ -48,6 +48,19 @@ use Peridot\Plugin\Watcher\WatcherInterface;
 return function(EventEmitterInterface $emitter) {
     $watcher = new WatcherPlugin($emitter);
     $watcher->setEvents([WatcherInterface::CREATE_EVENT, WatcherInterface::MODIFY_EVENT]);
+};
+```
+
+##Tracking additional paths
+By default, the watcher plugin just monitors the test patch. If you want to track additional paths, you can do so in your peridot.php file:
+
+<?php
+use Evenement\EventEmitterInterface;
+use Peridot\Plugin\Watcher\WatcherPlugin;
+
+return function(EventEmitterInterface $emitter) {
+    $watcher = new WatcherPlugin($emitter);
+    $watcher->track(__DIR__ . '/src');
 };
 ```
 
