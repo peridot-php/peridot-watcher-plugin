@@ -47,7 +47,7 @@ use Peridot\Plugin\Watcher\WatcherInterface;
 
 return function(EventEmitterInterface $emitter) {
     $watcher = new WatcherPlugin($emitter);
-    $watcher->setEvents([WatcherInterface::CREATE_EVENT, WatcherEvent::MODIFY_EVENT]);
+    $watcher->setEvents([WatcherInterface::CREATE_EVENT, WatcherInterface::MODIFY_EVENT]);
 };
 ```
 
