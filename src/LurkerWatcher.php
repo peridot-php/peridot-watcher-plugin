@@ -52,12 +52,10 @@ class LurkerWatcher implements WatcherInterface
     {
         $fileEvents = $this->getEventMap();
         $watcher = new ResourceWatcher();
-        foreach ($events as $event) {
-            $watcher->track('peridot.tests', $path, $fileEvents[$event]);
+        $paths = is_array($path) ? $path : [$path];
+        foreach ($paths as $path) {
+            $this->trackPath($path, $events, $listener, $watcher, $fileEvents);
         }
-        $watcher->addListener('peridot.tests', function () use ($listener) {
-            $listener($this->input, $this->output);
-        });
         $watcher->start();
     }
 
@@ -74,5 +72,23 @@ class LurkerWatcher implements WatcherInterface
             WatcherInterface::DELETE_EVENT => FilesystemEvent::DELETE,
             WatcherInterface::ALL_EVENT => FilesystemEvent::ALL
         ];
+    }
+
+    /**
+     * @param $path
+     * @param array $events
+     * @param callable $listener
+     * @param $watcher
+     * @param $fileEvents
+     */
+    protected function trackPath($path, array $events, callable $listener, $watcher, $fileEvents)
+    {
+        $trackId = 'peridot.watcher.' . $path;
+        foreach ($events as $event) {
+            $watcher->track($trackId, $path, $fileEvents[$event]);
+        }
+        $watcher->addListener($trackId, function () use ($listener) {
+            $listener($this->input, $this->output);
+        });
     }
 }

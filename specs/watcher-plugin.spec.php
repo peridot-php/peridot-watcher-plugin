@@ -152,7 +152,9 @@ describe('WatcherPlugin', function() {
             $this->environment = new Environment($this->definition, $this->emitter, []);
             $this->application = new StubApplication($this->environment);
 
-            $this->emitter->emit('peridot.configure', [new Configuration()]);
+            $this->configuration = new Configuration();
+            $this->configuration->setPath('path');
+            $this->emitter->emit('peridot.configure', [$this->configuration]);
         });
 
         it('should set input and ouput on the watcher', function() {
@@ -162,6 +164,17 @@ describe('WatcherPlugin', function() {
             $this->watcher->onPeridotEnd(0, $input, $output);
             assert($this->watcherInterface->input === $input, "should have set input");
             assert($this->watcherInterface->output === $output, "should have set output");
+        });
+    });
+
+    describe('->track()', function() {
+        it('should store additional paths to track', function() {
+            $this->watcher->track('src');
+            $this->watcher->track('specs');
+            $this->watcher->setConfiguration($this->configuration);
+            $this->watcher->refreshPath();
+            $expected = [$this->configuration->getPath(), 'src', 'specs'];
+            assert($expected == $this->watcher->getTrackedPaths(), "expected all tracked paths");
         });
     });
 });

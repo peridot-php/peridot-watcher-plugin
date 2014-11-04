@@ -41,7 +41,7 @@ interface WatcherInterface
      * Watch the path for changes specified by events, and call the
      * given listener when one of those events fires.
      *
-     * @param $path
+     * @param string|array $path a single path or an array of paths
      * @param array $events
      * @param callable $listener
      * @return mixed
