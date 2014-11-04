@@ -54,6 +54,7 @@ return function(EventEmitterInterface $emitter) {
 ##Tracking additional paths
 By default, the watcher plugin just monitors the test patch. If you want to track additional paths, you can do so in your peridot.php file:
 
+```php
 <?php
 use Evenement\EventEmitterInterface;
 use Peridot\Plugin\Watcher\WatcherPlugin;
