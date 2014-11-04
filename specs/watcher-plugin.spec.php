@@ -125,7 +125,7 @@ describe('WatcherPlugin', function() {
 
         beforeEach($setupApplication);
 
-        it('should execute the watcher with plugin events', function() {
+        it('should execute the watcher with file events', function() {
             $this->emitter->emit('peridot.configure', [new Configuration()]);
             $watcherInterface = new StubWatcher();
             $this->watcher->watch($watcherInterface);
@@ -137,6 +137,31 @@ describe('WatcherPlugin', function() {
         it('should return LurkerWatcher by default', function() {
             $watcher = $this->watcher->getWatcher();
             assert($watcher instanceof LurkerWatcher, "LurkerWatcher should be default WatcherInterface");
+        });
+    });
+
+    describe('->onPeridotEnd()', function() use ($setupEnvironment, $setupApplication) {
+
+        beforeEach(function() {
+            $this->emitter = new EventEmitter();
+            $this->watcher = new WatcherPlugin($this->emitter);
+            $this->watcherInterface = new StubWatcher();
+            $this->watcher->setWatcher($this->watcherInterface);
+
+            $this->definition = new InputDefinition();
+            $this->environment = new Environment($this->definition, $this->emitter, []);
+            $this->application = new StubApplication($this->environment);
+
+            $this->emitter->emit('peridot.configure', [new Configuration()]);
+        });
+
+        it('should set input and ouput on the watcher', function() {
+            $this->watcher->onPeridotStart($this->environment, $this->application);
+            $input = new ArrayInput(['--watch' => 1], $this->environment->getDefinition());
+            $output = new BufferedOutput();
+            $this->watcher->onPeridotEnd(0, $input, $output);
+            assert($this->watcherInterface->input === $input, "should have set input");
+            assert($this->watcherInterface->output === $output, "should have set output");
         });
     });
 });
@@ -153,9 +178,9 @@ class StubApplication extends Application
 
 class StubWatcher implements WatcherInterface
 {
-    protected $input;
+    public $input;
 
-    protected $output;
+    public $output;
 
     public $watched = false;
 

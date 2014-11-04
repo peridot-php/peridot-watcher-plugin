@@ -193,7 +193,11 @@ class WatcherPlugin
             return;
         }
 
-        $this->watch($this->getWatcher());
+        $watcher = $this->getWatcher();
+        $watcher->setInput($input);
+        $watcher->setOutput($output);
+
+        $this->watch($watcher);
     }
 
     /**
