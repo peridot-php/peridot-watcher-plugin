@@ -3,9 +3,7 @@ namespace Peridot\Plugin\Watcher;
 
 use Evenement\EventEmitterInterface;
 use Peridot\Configuration;
-use Peridot\Console\Application;
 use Peridot\Console\Environment;
-use Peridot\Runner\Context;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -18,29 +16,9 @@ class WatcherPlugin
     protected $emitter;
 
     /**
-     * @var Configuration
-     */
-    protected $configuration;
-
-    /**
-     * @var string
-     */
-    protected $path;
-
-    /**
      * @var array
      */
     protected $events;
-
-    /**
-     * @var Application
-     */
-    protected $application;
-
-    /**
-     * @var Environment
-     */
-    protected $environment;
 
     /**
      * @var WatcherInterface
@@ -63,48 +41,40 @@ class WatcherPlugin
     }
 
     /**
-     * @param Configuration $configuration
-     * @return $this
+     * @param Configuration $config
      */
-    public function setConfiguration(Configuration $configuration)
+    public function onPeridotConfigure(Configuration $config)
     {
-        $this->configuration = $configuration;
-        return $this;
-    }
-
-    /**
-     * @return Configuration
-     */
-    public function getConfiguration()
-    {
-        return $this->configuration;
+        $this->track($config->getPath());
     }
 
     /**
      * @param Environment $environment
      */
-    public function onPeridotStart(Environment $environment, Application $application)
+    public function onPeridotStart(Environment $environment)
     {
         $definition = $environment->getDefinition();
-        $definition->option("--watch", null, InputOption::VALUE_NONE, "Watch files for changes and rerun tests");
-        $this->environment = $environment;
-        $this->application = $application;
+        $definition->option('watch', null, InputOption::VALUE_NONE, "watch tests for changes and re-run them");
     }
 
     /**
-     * @return string
+     * @param $exitCode
+     * @param InputInterface $input
+     * @param OutputInterface $output
      */
-    public function getPath()
+    public function onPeridotEnd($exitCode, InputInterface $input, OutputInterface $output)
     {
-        return $this->path;
-    }
+        $this->emitter->removeListener('peridot.end', [$this, 'onPeridotEnd']);
 
-    /**
-     * @param string $path
-     */
-    public function refreshPath()
-    {
-        $this->path = $this->configuration->getPath();
+        if (!$input->getOption('watch')) {
+            return;
+        }
+
+        $watcher = $this->getWatcher();
+        $watcher->setInput($input);
+        $watcher->setOutput($output);
+
+        $this->watch($watcher);
     }
 
     /**
@@ -152,14 +122,6 @@ class WatcherPlugin
     }
 
     /**
-     * @return Environment
-     */
-    public function getEnvironment()
-    {
-        return $this->environment;
-    }
-
-    /**
      * @return WatcherInterface
      */
     public function getWatcher()
@@ -177,49 +139,6 @@ class WatcherPlugin
     {
         $this->watcher = $watcher;
         return $this;
-    }
-
-    /**
-     * @return Application
-     */
-    public function getApplication()
-    {
-        return $this->application;
-    }
-
-    /**
-     * @param $exitCode
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     */
-    public function onPeridotEnd($exitCode, InputInterface $input, OutputInterface $output)
-    {
-        $this->emitter->removeListener('peridot.end', [$this, 'onPeridotEnd']);
-
-        if (! $input->getOption('watch')) {
-            return;
-        }
-
-        $watcher = $this->getWatcher();
-        $watcher->setInput($input);
-        $watcher->setOutput($output);
-
-        $this->watch($watcher);
-    }
-
-    /**
-     * Runs the Peridot application after clearing the event emitter
-     * and resetting the root suite.
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     */
-    public function runPeridot(InputInterface $input, OutputInterface $output)
-    {
-        $this->environment->getEventEmitter()->removeAllListeners();
-        Context::getInstance()->getCurrentSuite()->setTests([]);
-        $this->listen();
-        $this->application->run($input, $output);
     }
 
     /**
@@ -253,17 +172,16 @@ class WatcherPlugin
      */
     public function getTrackedPaths()
     {
-        return array_merge([$this->getPath()], $this->trackedPaths);
+        return $this->trackedPaths;
     }
 
     /**
      * Listen for Peridot events
      */
-    protected function listen()
+    private function listen()
     {
-        $this->emitter->on('peridot.configure', [$this, 'setConfiguration']);
+        $this->emitter->on('peridot.configure', [$this, 'onPeridotConfigure']);
         $this->emitter->on('peridot.start', [$this, 'onPeridotStart']);
-        $this->emitter->on('runner.start', [$this, 'refreshPath']);
         $this->emitter->on('peridot.end', [$this, 'onPeridotEnd']);
     }
 } 

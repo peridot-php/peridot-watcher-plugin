@@ -20,10 +20,11 @@ describe('WatcherPlugin', function() {
     });
 
     context('when peridot.configure event fires', function() {
-        it('should store peridot configuration', function() {
+        it('should add the test path to tracked paths', function() {
             $configuration = new Configuration();
+            $configuration->setPath('/path/to/thing');
             $this->emitter->emit('peridot.configure', [$configuration]);
-            assert($this->watcher->getConfiguration() === $configuration, "event should set watcher config");
+            assert($this->watcher->getTrackedPaths()[0] == $configuration->getPath(), "should track config path");
         });
     });
 
@@ -41,30 +42,8 @@ describe('WatcherPlugin', function() {
             $this->emitter->emit('peridot.start', [$this->environment, $this->application]);
         });
 
-        it('should add a watch option on the input defintion', function() {
+        it('should add a watch option on the input definition', function() {
             assert($this->definition->hasOption('watch'), "input definition should have watch option");
-        });
-
-        it('should store the peridot environment', function() {
-            $env = $this->watcher->getEnvironment();
-            assert($env === $this->environment, "watcher should have set environment");
-        });
-
-        it('should store the peridot application', function() {
-            $app = $this->watcher->getApplication();
-            assert($app === $this->application, "watcher should have set application");
-        });
-    });
-
-    context('when runner.start event fires', function() {
-        it('should set the path to watch to the configuration path', function() {
-            $configuration = new Configuration();
-            $configuration->setPath('mypath');
-            $this->watcher->setConfiguration($configuration);
-            $this->emitter->emit('runner.start', []);
-            $expected = $configuration->getPath();
-            $actual = $this->watcher->getPath();
-            assert($expected == $actual, "expected $expected, got $actual");
         });
     });
 
@@ -81,21 +60,6 @@ describe('WatcherPlugin', function() {
         $this->input = new ArrayInput([]);
         $this->output = new BufferedOutput();
     };
-
-    describe('->runPeridot()', function() use ($setupEnvironment, $setupApplication) {
-
-        beforeEach($setupEnvironment);
-
-        beforeEach($setupApplication);
-
-        it('should clear the event emitter', function() {
-            $this->emitter->on('ham', function() {  });
-            $this->watcher->onPeridotStart($this->environment, $this->application);
-            $this->watcher->runPeridot($this->input, $this->output);
-            $listeners = $this->emitter->listeners('ham');
-            assert(empty($listeners), "listeners should be cleared");
-        });
-    });
 
     describe('->setEvents()', function() {
         it('should set events to defaults if array is empty', function() {
@@ -179,9 +143,7 @@ describe('WatcherPlugin', function() {
         it('should store additional paths to track', function() {
             $this->watcher->track('src');
             $this->watcher->track('specs');
-            $this->watcher->setConfiguration($this->configuration);
-            $this->watcher->refreshPath();
-            $expected = [$this->configuration->getPath(), 'src', 'specs'];
+            $expected = ['src', 'specs'];
             assert($expected == $this->watcher->getTrackedPaths(), "expected all tracked paths");
         });
     });
