@@ -82,3 +82,9 @@ $ vendor/bin/peridot -c example/peridot.php example/modifyme.spec.php --watch
 ```
 $ vendor/bin/peridot specs/
 ```
+
+##Note on IDEs
+
+Some IDEs might choke on ANSI sequences being returned from the watcher process. PHPStorm does not render colors
+from sub process output, but most terminals will. If using the terminal from your IDE is a must, you may want to run your
+tests using the `--no-colors` option.
