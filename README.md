@@ -1,8 +1,6 @@
 Peridot Watcher Plugin
 ======================
 
-##WIP - This is pretty broken right now - come back later.
-
 [![Build Status](https://travis-ci.org/peridot-php/peridot-watcher-plugin.png)](https://travis-ci.org/peridot-php/peridot-watcher-plugin) [![HHVM Status](http://hhvm.h4cc.de/badge/peridot-php/peridot-watcher-plugin.svg)](http://hhvm.h4cc.de/package/peridot-php/peridot-watcher-plugin)
 
 Watch for changes in your Peridot tests and re run them when a change occurs.
@@ -66,6 +64,9 @@ return function(EventEmitterInterface $emitter) {
     $watcher->track(__DIR__ . '/src');
 };
 ```
+
+Using the above, you can re run your tests when the source file changes. Since the Peridot watcher re runs your tests
+in a sub-process, it will actually detect new changes in your source.
 
 ##Example specs
 
