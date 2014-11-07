@@ -178,6 +178,7 @@ class WatcherPlugin
         $command = $this->joinCommand($argv);
         $process = new Process($command);
         $process->run(function($type, $buffer) use ($output) {
+            $buffer = preg_replace('/\[([\d]{2})m/', "\033[$1m", $buffer);
             $output->write($buffer);
         });
     }
