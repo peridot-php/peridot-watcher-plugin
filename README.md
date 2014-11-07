@@ -5,6 +5,8 @@ Peridot Watcher Plugin
 
 Watch for changes in your Peridot tests and re run them when a change occurs.
 
+![Peridot watcher](https://raw.github.com/peridot-php/peridot-watcher-plugin/master/watcher.gif "Peridot watcher in action")
+
 ##Usage
 
 We recommend installing this plugin to your project via composer:
