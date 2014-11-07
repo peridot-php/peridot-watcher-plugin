@@ -147,6 +147,19 @@ describe('WatcherPlugin', function() {
             assert($expected == $this->watcher->getTrackedPaths(), "expected all tracked paths");
         });
     });
+
+    describe('->joinCommand()', function() {
+        it('should join an arg array into a php command', function() {
+            $command = $this->watcher->joinCommand(['bin/peridot', 'specs/']);
+            assert($command == 'php bin/peridot specs/', "should join array into php command");
+        });
+
+        it('should strip the watch option if present', function() {
+            $command = $this->watcher->joinCommand(['bin/peridot', 'specs/', '--watch']);
+            $expected = 'php bin/peridot specs/';
+            assert($command == $expected, "expected $expected, got $command");
+        });
+    });
 });
 
 class StubApplication extends Application

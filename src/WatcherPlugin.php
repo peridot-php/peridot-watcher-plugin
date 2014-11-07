@@ -7,6 +7,7 @@ use Peridot\Console\Environment;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 
 class WatcherPlugin
 {
@@ -163,6 +164,36 @@ class WatcherPlugin
     {
         $this->trackedPaths[] = $path;
         return $this;
+    }
+
+    /**
+     * Run an isolated process of Peridot and feed results to the output interface.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     */
+    public function runPeridot(InputInterface $input, OutputInterface $output)
+    {
+        global $argv;
+        $command = $this->joinCommand($argv);
+        $process = new Process($command);
+        $process->run(function($type, $buffer) use ($output) {
+            $buffer = preg_replace('/\[([\d]{2})m/', "\033[$1m", $buffer);
+            $output->write($buffer);
+        });
+    }
+
+    /**
+     * Join an array of arg parts into a command.
+     *
+     * @param array $parts
+     * @return string
+     */
+    public function joinCommand(array $parts)
+    {
+        $command = 'php ' . implode(' ', $parts);
+        $stripped = str_replace('--watch', '', $command);
+        return trim($stripped);
     }
 
     /**
