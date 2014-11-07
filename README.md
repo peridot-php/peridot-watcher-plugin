@@ -85,6 +85,10 @@ $ vendor/bin/peridot -c example/peridot.php example/modifyme.spec.php --watch
 $ vendor/bin/peridot specs/
 ```
 
+##Inotify support
+
+The watcher plugin will leverage the [Inotify extension](http://php.net/manual/en/book.inotify.php) if it is available, otherwise it will use a recursive directory strategy to watch for changes.
+
 ##Note on IDEs
 
 Some IDEs might choke on ANSI sequences being returned from the watcher process. PHPStorm does not render colors
