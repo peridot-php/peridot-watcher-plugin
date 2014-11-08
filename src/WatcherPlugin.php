@@ -79,6 +79,7 @@ class WatcherPlugin
         $watcher = $this->getWatcher();
         $watcher->setInput($input);
         $watcher->setOutput($output);
+        $watcher->setCriteria($this->getFileCriteria());
 
         $this->watch($watcher);
     }

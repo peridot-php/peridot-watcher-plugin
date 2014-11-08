@@ -122,13 +122,14 @@ describe('WatcherPlugin', function() {
             $this->emitter->emit('peridot.configure', [$this->configuration]);
         });
 
-        it('should set input and ouput on the watcher', function() {
+        it('should set input, ouput, and criteria on the watcher', function() {
             $this->watcher->onPeridotStart($this->environment, $this->application);
             $input = new ArrayInput(['--watch' => 1], $this->environment->getDefinition());
             $output = new BufferedOutput();
             $this->watcher->onPeridotEnd(0, $input, $output);
             assert($this->watcherInterface->input === $input, "should have set input");
             assert($this->watcherInterface->output === $output, "should have set output");
+            assert($this->watcherInterface->criteria == ['/\.php$/'], "should have set criteria");
         });
 
         it('should remove the peridot.end listener', function() {
@@ -196,6 +197,8 @@ class StubWatcher implements WatcherInterface
 
     public $watched = false;
 
+    public $criteria = [];
+
     public function setInput(InputInterface $input)
     {
         $this->input = $input;
@@ -209,5 +212,10 @@ class StubWatcher implements WatcherInterface
     public function watch($path, array $events, callable $listener)
     {
         $this->watched = true;
+    }
+
+    public function setCriteria(array $criteria)
+    {
+        $this->criteria = $criteria;
     }
 }
