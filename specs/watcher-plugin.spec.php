@@ -160,6 +160,22 @@ describe('WatcherPlugin', function() {
             assert($command == $expected, "expected $expected, got $command");
         });
     });
+
+    describe('->getFileCriteria()', function() {
+        it('should return a pattern for php files by default', function() {
+            $pattern = $this->watcher->getFileCriteria()[0];
+            assert(preg_match($pattern, '/path/file.php'), 'should match php file');
+        });
+    });
+
+    describe('->addFileCriteria()', function() {
+        it('should add a pattern to file criteria', function() {
+            $this->watcher->addFileCriteria('/\.js$/');
+            $pattern = $this->watcher->getFileCriteria()[1];
+            assert(preg_match($pattern, '/path/to/file.js'), "should match js file");
+        });
+    });
+
 });
 
 class StubApplication extends Application
