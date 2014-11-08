@@ -12,7 +12,7 @@ Watch for changes in your Peridot tests and re run them when a change occurs.
 We recommend installing this plugin to your project via composer:
 
 ```
-$ composer require --dev peridot-php/peridot-watcher-plugin:~1.2
+$ composer require --dev peridot-php/peridot-watcher-plugin:~1.3
 ```
 
 You can register the plugin via your [peridot.php](http://peridot-php.github.io/#plugins) file.
