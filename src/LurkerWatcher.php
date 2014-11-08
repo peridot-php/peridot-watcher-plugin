@@ -19,6 +19,11 @@ class LurkerWatcher implements WatcherInterface
     protected $output;
 
     /**
+     * @var array
+     */
+    protected $criteria = [];
+
+    /**
      * {@inheritdoc}
      *
      * @param InputInterface $input
@@ -38,6 +43,17 @@ class LurkerWatcher implements WatcherInterface
     public function setOutput(OutputInterface $output)
     {
         $this->output = $output;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param array $criteria
+     * @return mixed|void
+     */
+    public function setCriteria(array $criteria)
+    {
+        $this->criteria = $criteria;
     }
 
     /**
@@ -87,8 +103,24 @@ class LurkerWatcher implements WatcherInterface
         foreach ($events as $event) {
             $watcher->track($trackId, $path, $fileEvents[$event]);
         }
-        $watcher->addListener($trackId, function () use ($listener) {
-            $listener($this->input, $this->output);
+        $watcher->addListener($trackId, function (FilesystemEvent $e) use ($listener) {
+            if ($this->resourceMatchesCriteria($e->getResource())) {
+                $listener($this->input, $this->output);
+            }
         });
+    }
+
+    /**
+     * @param string $resource
+     * @return bool
+     */
+    protected function resourceMatchesCriteria($resource)
+    {
+        foreach ($this->criteria as $criteria) {
+            if (preg_match($criteria, $resource)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

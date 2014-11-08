@@ -67,6 +67,22 @@ return function(EventEmitterInterface $emitter) {
 };
 ```
 
+##File criteria
+The watcher will look for changes in files ending in .php by default. If you want to track additional
+file types, you can add criteria as regular expressions in your peridot.php file:
+
+```php
+<?php
+use Evenement\EventEmitterInterface;
+use Peridot\Plugin\Watcher\WatcherPlugin;
+
+return function(EventEmitterInterface $emitter) {
+    $watcher = new WatcherPlugin($emitter);
+    $watcher->track(__DIR__ . '/src');
+    $watcher->addFileCriteria('/\.js$/');
+};
+```
+
 Using the above, you can re run your tests when the source file changes. Since the Peridot watcher re runs your tests
 in a sub-process, it will actually detect new changes in your source.
 

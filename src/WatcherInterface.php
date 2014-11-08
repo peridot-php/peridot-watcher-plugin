@@ -30,12 +30,21 @@ interface WatcherInterface
     public function setInput(InputInterface $input);
 
     /**
-     * Set an output interface for the watcher to re-use
+     * Set an output interface for the watcher to re-use.
      *
      * @param OutputInterface $output
      * @return mixed
      */
     public function setOutput(OutputInterface $output);
+
+    /**
+     * Set an array of patterns. If a file matches any of them
+     * it will trigger a listener.
+     *
+     * @param array $criteria
+     * @return mixed
+     */
+    public function setCriteria(array $criteria);
 
     /**
      * Watch the path for changes specified by events, and call the

@@ -32,6 +32,11 @@ class WatcherPlugin
     protected $trackedPaths = [];
 
     /**
+     * @var array
+     */
+    protected $criteria = ['/\.php$/'];
+
+    /**
      * @param EventEmitterInterface $emitter
      */
     public function __construct(EventEmitterInterface $emitter)
@@ -74,6 +79,7 @@ class WatcherPlugin
         $watcher = $this->getWatcher();
         $watcher->setInput($input);
         $watcher->setOutput($output);
+        $watcher->setCriteria($this->getFileCriteria());
 
         $this->watch($watcher);
     }
@@ -204,6 +210,27 @@ class WatcherPlugin
     public function getTrackedPaths()
     {
         return $this->trackedPaths;
+    }
+
+    /**
+     * Return an array of regular expressions used for
+     * matching a file type
+     *
+     * @return array
+     */
+    public function getFileCriteria()
+    {
+        return $this->criteria;
+    }
+
+    /**
+     * @param $pattern
+     * @return $this
+     */
+    public function addFileCriteria($pattern)
+    {
+        $this->criteria[] = $pattern;
+        return $this;
     }
 
     /**
