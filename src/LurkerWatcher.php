@@ -99,15 +99,15 @@ class LurkerWatcher implements WatcherInterface
      */
     protected function trackPath($path, array $events, callable $listener, $watcher, $fileEvents)
     {
-        $trackId = 'peridot.watcher.' . $path;
         foreach ($events as $event) {
+            $trackId = "peridot.watcher.$event." . $path;
             $watcher->track($trackId, $path, $fileEvents[$event]);
+            $watcher->addListener($trackId, function (FilesystemEvent $e) use ($listener) {
+                if ($this->resourceMatchesCriteria($e->getResource())) {
+                    $listener($this->input, $this->output);
+                }
+            });
         }
-        $watcher->addListener($trackId, function (FilesystemEvent $e) use ($listener) {
-            if ($this->resourceMatchesCriteria($e->getResource())) {
-                $listener($this->input, $this->output);
-            }
-        });
     }
 
     /**
