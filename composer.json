@@ -9,9 +9,10 @@
         }
     ],
     "require": {
-        "peridot-php/peridot": "^1.6",
-        "henrikbjorn/lurker": "^1.0",
-        "symfony/process": "^2.0|^3.0"
+        "php": ">=5.4",
+        "peridot-php/peridot": "^1",
+        "henrikbjorn/lurker": "^1",
+        "symfony/process": "^2|^3"
     },
     "autoload": {
         "psr-4": {

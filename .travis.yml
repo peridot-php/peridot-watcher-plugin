@@ -1,18 +1,48 @@
 language: php
 
-php:
-  - 5.6
-  - 5.5
-  - 5.4
-  - hhvm
-  - hhvm-nightly
+matrix:
+    include:
+        - php: 5.4
+        - php: 5.5
+        - php: 5.6
+        - php: 7.0
+        - php: 7.1
+        - php: nightly
+        - php: hhvm-3.6
+          sudo: required
+          dist: trusty
+          group: edge
+        - php: hhvm-3.9
+          sudo: required
+          dist: trusty
+          group: edge
+        - php: hhvm-3.12
+          sudo: required
+          dist: trusty
+          group: edge
+        - php: hhvm-3.15
+          sudo: required
+          dist: trusty
+          group: edge
+        - php: hhvm-nightly
+          sudo: required
+          dist: trusty
+          group: edge
+    fast_finish: true
+    allow_failures:
+        - php: nightly
+        - php: hhvm-3.6
+        - php: hhvm-3.9
+        - php: hhvm-3.12
+        - php: hhvm-3.15
+        - php: hhvm-nightly
 
-install:
-    - composer install --prefer-source
-
+before_install: phpenv config-rm xdebug.ini || true
+install: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
 script: vendor/bin/peridot specs/
 
-matrix:
-  fast_finish: true
-  allow_failures:
-    - php: hhvm-nightly
+cache:
+    directories:
+        - $HOME/.composer
+
+sudo: false
